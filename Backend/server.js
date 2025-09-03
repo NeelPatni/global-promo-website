@@ -18,9 +18,11 @@ const __dirname = path.dirname(__filename);
 
 // ✅ Middleware
 app.use(bodyParser.json());
+
+// ✅ CORS (since frontend & backend are on same origin, this is optional)
 app.use(
   cors({
-    origin: "*", // Replace "*" with your frontend URL in production
+    origin: "https://global-promo-website.onrender.com",
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -32,7 +34,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Routes
+// ✅ API Routes
 
 // Get Razorpay key
 app.get("/api/get-key", (req, res) => {
@@ -46,7 +48,7 @@ app.post("/api/orders", async (req, res) => {
     if (!amount) return res.status(400).json({ error: "Amount is required" });
 
     const options = {
-      amount: Math.round(Number(amount) * 100), // Amount in smallest currency unit
+      amount: Math.round(Number(amount) * 100), // smallest currency unit
       currency: "USD",
     };
 
@@ -78,8 +80,8 @@ app.post("/api/verify", (req, res) => {
 // ✅ Serve frontend
 app.use(express.static(path.join(__dirname, "Html")));
 
-// Catch-all route for SPA
-app.get("*", (req, res) => {
+// 🔹 Catch-all route for SPA
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, "Html", "index.html"));
 });
 
