@@ -78,12 +78,11 @@ app.post("/api/verify", (req, res) => {
 });
 
 // ✅ Serve frontend
-app.use(express.static(path.join(__dirname, "Html")));
-
-// 🔹 Catch-all route for SPA
+app.use(express.static(path.join(__dirname, "../Html")));
 app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "Html", "index.html"));
+  res.sendFile(path.join(__dirname, "../Html/index.html"));
 });
+
 
 // ✅ Start server
 const PORT = process.env.PORT || 5000;
