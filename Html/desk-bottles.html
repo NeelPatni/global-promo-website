@@ -655,12 +655,102 @@
                                                     <span class="cart-title">Add to cart</span>
                                                 </button> -->
                                             </div>
-                                            <a href="cart-empty.html" class="btn btn-cart btn-theme">
+                                            <a href="#" id="place-order-btn" class="btn btn-cart btn-theme">
                                                 <span>Buy now</span>
                                             </a>
                                         </div>
                                     </form>
                                 </div>
+                                <!-- Razorpay script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("place-order-btn");
+
+  btn.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    // 🟢 1. Get cart total
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    if (!cart.length) {
+      alert("Your cart is empty.");
+      return;
+    }
+
+    const subtotal = cart.reduce(
+      (t, it) => t + (Number(it.price) || 0) * (Number(it.quantity) || 0),
+      0
+    );
+
+    const shipping = 5; // Example shipping charge
+    const total = subtotal; // ✅ USD total (agar shipping nahi chahiye)
+
+    console.log("Cart subtotal:", subtotal);
+    console.log("Cart total:", total);
+
+    // 🟢 2. Get Razorpay key
+    const { key } = await fetch("https://global-promo-website.onrender.com/api/get-key")
+      .then((r) => r.json());
+
+    // 🟢 3. Create order
+    const order = await fetch("https://global-promo-website.onrender.com/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: total }) // dollars bhejna
+    }).then((r) => r.json());
+
+    // 🟢 4. Open Razorpay checkout
+    const options = {
+      key,
+      amount: order.amount, // backend → cents me converted
+      currency: "USD",
+      name: "My Store",
+      description: "Order Payment",
+      order_id: order.id,
+      handler: async function (response) {
+        // 🟢 Verify signature
+        const verifyRes = await fetch("https://global-promo-website.onrender.com/api/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(response),
+        }).then((r) => r.json());
+
+        if (verifyRes.success) {
+          const lastOrder = {
+            orderId: order.id,
+            paymentId: response.razorpay_payment_id,
+            subtotal,
+            shipping,
+            total,
+            status: "Payment Successful",
+            delivery: "Your order will be delivered within 5–7 working days.",
+            date: new Date().toLocaleString(),
+            address: {
+              name: "John Doe",
+              street: "7003 Fairway Street",
+              city: "New York",
+              state: "NY",
+              zip: "10033",
+              country: "USA",
+              phone: "+1-123456789",
+            },
+          };
+
+          localStorage.setItem("lastOrder", JSON.stringify(lastOrder));
+          localStorage.removeItem("cart");
+          window.location.href = "order-complete.html";
+        } else {
+          alert("Payment verification failed!");
+        }
+      },
+      theme: { color: "#FF6B00" },
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  });
+});
+</script>
                                 <div class="product-info">
                                     <p><span>🚚</span> Item will be delivered on or before <span id="ten-days-ahead"></span></p>
                                 </div>
