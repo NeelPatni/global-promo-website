@@ -21,7 +21,7 @@ app.use(
 
 
 // Handle OPTIONS for preflight
-app.options("/*", cors());
+app.use(cors()); // applies CORS to all routes
 
 // ✅ Razorpay instance
 const razorpay = new Razorpay({
