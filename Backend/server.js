@@ -4,24 +4,23 @@ import Razorpay from "razorpay";
 import cors from "cors";
 import bodyParser from "body-parser";
 import crypto from "crypto";
+import path from "path";
 
 dotenv.config({ path: "config/config.env" });
 
 const app = express();
+const __dirname = path.resolve();
+
 app.use(bodyParser.json());
 
-// ✅ Setup CORS (Frontend URL must be allowed)
+// ✅ Setup CORS
 app.use(
   cors({
-    origin: "https://global-promo-website.onrender.com",
+    origin: "*", // allow all origins or specify your frontend URL
     methods: ["GET", "POST"],
     credentials: true,
   })
 );
-
-
-// Handle OPTIONS for preflight
-app.use(cors()); // applies CORS to all routes
 
 // ✅ Razorpay instance
 const razorpay = new Razorpay({
@@ -29,18 +28,17 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Get Razorpay Key
+// ✅ Razorpay Routes
 app.get("/api/get-key", (req, res) => {
   res.json({ key: process.env.RAZORPAY_KEY_ID });
 });
 
-// ✅ Create Order (USD fix)
 app.post("/api/orders", async (req, res) => {
   try {
-    const { amount } = req.body; // amount in dollars from frontend
+    const { amount } = req.body;
 
     const options = {
-      amount: Math.round(amount * 100), // ✅ convert to cents
+      amount: Math.round(amount * 100),
       currency: "USD",
     };
 
@@ -52,7 +50,6 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 
-// ✅ Verify Payment
 app.post("/api/verify", (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
@@ -69,5 +66,14 @@ app.post("/api/verify", (req, res) => {
   }
 });
 
+// ✅ Serve Frontend
+app.use(express.static(path.join(__dirname, "Html"))); 
+
+// Catch-all route to send index.html (for SPA)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "Html", "index.html")); 
+});
+
+// ✅ Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
