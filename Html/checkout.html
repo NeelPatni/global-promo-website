@@ -878,11 +878,11 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Cart total:", total);
 
     // 🟢 2. Get Razorpay key
-    const { key } = await fetch("https://global-promo.onrender.com/api/get-key")
+    const { key } = await fetch("https://global-promo-website.onrender.com/api/get-key")
       .then((r) => r.json());
 
     // 🟢 3. Create order
-    const order = await fetch("https://global-promo.onrender.com/api/orders", {
+    const order = await fetch("https://global-promo-website.onrender.com/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount: total }) // dollars bhejna
@@ -898,7 +898,7 @@ document.addEventListener("DOMContentLoaded", () => {
       order_id: order.id,
       handler: async function (response) {
         // 🟢 Verify signature
-        const verifyRes = await fetch("https://global-promo.onrender.com/api/verify", {
+        const verifyRes = await fetch("https://global-promo-website.onrender.com/api/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(response),

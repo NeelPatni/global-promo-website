@@ -13,11 +13,12 @@ app.use(bodyParser.json());
 // ✅ Setup CORS (Frontend URL must be allowed)
 app.use(
   cors({
-    origin: "https://global-promo-frontend.onrender.com", // change to your frontend render URL
+    origin: "https://global-promo-website.onrender.com",
     methods: ["GET", "POST"],
     credentials: true,
   })
 );
+
 
 // Handle OPTIONS for preflight
 app.options("*", cors());
